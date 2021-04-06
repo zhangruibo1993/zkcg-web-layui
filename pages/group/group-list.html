@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>拼团列表</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<link rel="stylesheet" href="../../css/oksub.css">
+		<script type="text/javascript" src="../../lib/loading/okLoading.js"></script>
+	</head>
+	<body>
+		<div class="ok-body">
+			<!--模糊搜索区域-->
+			<div class="layui-row">
+				<form class="layui-form ok-search-form">
+					<div class="layui-form-item">
+						<div class="layui-inline">
+							<label class="layui-form-label">团长名称</label>
+							<div class="layui-input-inline">
+								<input type="text" class="layui-input" autocomplete="off" name="chiefName">
+							</div>
+						</div>
+						<div class="layui-inline">
+							<label class="layui-form-label">会员名称</label>
+							<div class="layui-input-inline">
+								<input type="text" class="layui-input" autocomplete="off" name="name">
+							</div>
+						</div>
+						<div class="layui-inline">
+						      <label class="layui-form-label">开始时间</label>
+						      <div class="layui-input-inline">
+						        <input type="text" class="layui-input" id="startTime" name="startTime" placeholder="年-月-日">
+						      </div>
+						</div>
+						<div class="layui-inline">
+							  <label class="layui-form-label">结束时间</label>
+							  <div class="layui-input-inline">
+								<input type="text" class="layui-input" id="endTime" name="endTime" placeholder="年-月-日">
+							  </div>
+						</div>
+						<div class="layui-inline">
+							<div class="layui-input-inline">
+								<button class="layui-btn" lay-submit="" lay-filter="search">
+									<i class="layui-icon">&#xe615;</i>
+								</button>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+			<!--数据表格-->
+			<table class="layui-hide" id="tableId" lay-filter="tableFilter"></table>
+		</div>
+<!--js逻辑-->
+<script src="../../lib/layui/layui.js"></script>
+<script>
+	layui.use(["element", "jquery", "table", "form", "laydate", "okLayer", "okUtils", "okMock"], function () {
+		let table = layui.table;
+		let form = layui.form;
+		let laydate = layui.laydate;
+		let okLayer = layui.okLayer;
+		let okUtils = layui.okUtils;
+		let okMock = layui.okMock;
+		let $ = layui.jquery;
+
+		okLoading.close($);
+
+		var startTime = laydate.render({//渲染开始时间选择
+		        elem: '#startTime', //通过id绑定html中插入的start
+		        type: 'datetime',
+		        max: "2099-12-31 23:59:59",//设置一个默认最大值
+		        done: function (value, dates) {
+		                endTime.config.min = {
+		                    year: dates.year,
+		                    month: dates.month - 1, //关键
+		                    date: dates.date,
+		                    hours: dates.hours,
+		                    minutes: dates.minutes,
+		                    seconds: dates.seconds
+		                };
+		        }
+		    });
+		var endTime = laydate.render({//渲染结束时间选择
+		        elem: '#endTime',//通过id绑定html中插入的end
+		        type: 'datetime',
+		        min: "1970-1-1 00:00:00",//设置min默认最小值
+		        done: function (value, dates) {
+		                startTime.config.max = {
+		                    year: dates.year,
+		                    month: dates.month - 1,//关键
+		                    date: dates.date,
+		                    hours: dates.hours,
+		                    minutes: dates.minutes,
+		                    seconds: dates.seconds
+		                }
+		        }
+		    });
+
+
+		let userTable = table.render({
+			elem: '#tableId',
+			url: okUtils.baseUrl + '/group/list',
+			limit: 10,
+			page: true,
+			toolbar: true,
+			// toolbar: "#toolbarTpl",
+			size: "sm", //尺寸外观
+			request: {
+			   pageName: 'page', //页码的参数名称，默认：page
+			   limitName: 'rows' //每页数据量的参数名，默认：limit
+			},
+			parseData: function(res){ //res 即为原始返回的数据
+				return {
+				  "code": res.code, //解析接口状态
+				  "msg": res.msg, //解析提示文本
+				  "count": res.data.total, //解析数据长度
+				  "data": res.data.rows //解析数据列表
+				};
+			},
+			headers : {
+				session_token : sessionStorage.getItem("session_token")
+			},
+			cols: [[
+				{field: "id", title: "ID", hide: true, sort: true},
+				{field: "groupNo", title: "团编号" ,hide: true,align:"center"},
+				{field: "chief", title: "团长" ,align:"center",width:200, templet: chiefLink},
+				{field: "viceChiefOne", title: "副团长1" ,align:"center",width:200, templet: viceChiefOneLink},
+				{field: "viceChiefTwo", title: "副团长2" ,align:"center",width:200, templet: viceChiefTwoLink},
+				{field: "leagueOne", title: "团员1" ,align:"center",width:200, templet: leagueOneLink},
+				{field: "leagueTwo", title: "团员2" ,align:"center",width:200, templet: leagueTwoLink },
+				{field: "leagueThree", title: "团员3" ,align:"center",width:200, templet: leagueThreeLink},
+				{field: "leagueFour", title: "团员4" ,align:"center",width:200, templet: leagueFourLink},
+				{field: "createTime", title: "注册时间",width:160,align:"center"},
+				// {title: "操作", align: "center", fixed: "right", templet: "#operationTpl"}
+			]],
+			done: function (res, curr, count) {
+				//console.info(res, curr, count);
+			}
+		});
+
+		form.on("submit(search)", function (data) {
+			userTable.reload({
+				where: data.field,
+				page: {curr: 1}
+			});
+			return false;
+		});
+
+		table.on("toolbar(tableFilter)", function (obj) {
+			switch (obj.event) {
+				case "batchEnabled":
+					batchEnabled();
+					break;
+				case "batchDisabled":
+					batchDisabled();
+					break;
+				case "batchDel":
+					batchDel();
+					break;
+				case "add":
+					add();
+					break;
+			}
+		});
+
+		table.on("tool(tableFilter)", function (obj) {
+			let data = obj.data;
+			switch (obj.event) {
+				case "edit":
+					edit(data);
+					break;
+				case "del":
+					del(data.id);
+					break;
+				case "link":
+					groupLink(data.groupId);
+					break;
+			}
+		});
+		
+		function imgName(url,name){
+			if ('' == url || null == url || undefined == url) {
+				return '';
+			}
+			if (url.length > 0) {
+				return '<img src='+url+' width="25px" height="20px"/>'+name;                  			   
+			}
+		}
+		
+		//头像链接跳转
+		function chiefLink(d){
+			return imgName(d.chiefHeadUrl,d.chiefName);
+		}
+		
+		function viceChiefOneLink(d){
+			return imgName(d.viceChiefOneHeadUrl,d.viceChiefOneName);
+		}
+		
+		function viceChiefTwoLink(d){
+			return imgName(d.viceChiefTwoHeadUrl,d.viceChiefTwoName);
+		}
+		
+		function leagueOneLink(d){
+			return imgName(d.leagueOneHeadUrl,d.leagueOneName);
+		}
+		
+		function leagueTwoLink(d){
+			return imgName(d.leagueTwoHeadUrl,d.leagueTwoName);
+		}
+		
+		function leagueThreeLink(d){
+			return imgName(d.leagueThreeHeadUrl,d.leagueThreeName);
+		}
+		
+		function leagueFourLink(d){
+			return imgName(d.leagueFourHeadUrl,d.leagueFourName);
+		}
+		
+	})
+</script>
+		<!-- 头工具栏模板 -->
+		<script type="text/html" id="toolbarTpl">
+			<div class="layui-btn-container">
+		<button class="layui-btn layui-btn-sm" lay-event="add">添加会员</button>
+	</div>
+</script>
+		<!-- 行工具栏模板 -->
+<script type="text/html" id="operationTpl">
+			<a href="javascript:" title="编辑" lay-event="edit"><i class="layui-icon">&#xe642;</i></a>
+	<a href="javascript:" title="删除" lay-event="del"><i class="layui-icon">&#xe640;</i></a>
+</script>
+
+<script type="text/html" id="statusTpl">
+	{{#  if(d.status == 1){ }}
+		<span class="layui-btn layui-btn-normal layui-btn-xs">启用</span>
+	{{#  } else if(d.status == 0) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">停止</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="vipLevelTpl">
+	{{#  if(d.vipLevel == 1){ }}
+		<span class=" layui-btn-xs">普通用户</span>
+	{{#  } else if(d.vipLevel == 2) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">vip会员</span>
+	{{#  } else if(d.vipLevel == 3) { }}
+		<span class="layui-btn layui-btn-normal layui-btn-xs">初级合伙人</span>
+	{{#  } else if(d.vipLevel == 4) { }}
+		<span class="layui-btn layui-btn-normal layui-btn-xs">中级合伙人</span>
+	{{#  } else if(d.vipLevel == 5) { }}
+		<span class="layui-btn layui-btn-normal layui-btn-xs">高级合伙人</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="typeTpl">
+	{{#  if(d.type == 1){ }}
+		<span class=" layui-btn-xs">真实用户</span>
+	{{#  } else if(d.type == 0) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">虚拟用户</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="genderTpl">
+	{{#  if(d.gender == 1){ }}
+		<span >男</span>
+	{{#  } else if(d.gender == 0) { }}
+		<span >女</span>
+	{{#  } }}
+</script>
+
+	</body>
+</html>

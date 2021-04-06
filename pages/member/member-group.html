@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>拼团详情</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<link rel="stylesheet" href="../../css/oksub.css">
+	<script type="text/javascript" src="../../lib/loading/okLoading.js"></script>
+</head>
+<body>
+<div class="ok-body">
+	<!--form表单-->
+	<form class="layui-form layui-form-pane ok-form" lay-filter="filter">
+		<div class="layui-form-item">
+			<label class="layui-form-label"></span>拼团编号</label>
+			<div class="layui-input-block">
+				<input type="text" name="groupNo" autocomplete="off" class="layui-input" >
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label"></span>团长</label>
+			<div class="layui-input-block">
+				<input type="text" name="chiefName" autocomplete="off" class="layui-input" >
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label"></span>副团长1</label>
+			<div class="layui-input-block">
+				<input type="text" name="viceChiefOneName" autocomplete="off" class="layui-input" >
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label"></span>副团长2</label>
+			<div class="layui-input-block">
+				<input type="text" name="viceChiefTwoName" autocomplete="off" class="layui-input" >
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label"></span>团员1</label>
+			<div class="layui-input-block">
+				<input type="text" name="leagueOneName" autocomplete="off" class="layui-input" >
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label"></span>团员2</label>
+			<div class="layui-input-block">
+				<input type="text" name="leagueTwoName" autocomplete="off" class="layui-input" >
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label"></span>团员3</label>
+			<div class="layui-input-block">
+				<input type="text" name="leagueThreeName" autocomplete="off" class="layui-input" >
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label"></span>团员4</label>
+			<div class="layui-input-block">
+				<input type="text" name="leagueFourName" autocomplete="off" class="layui-input" >
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label"></span>成团时间</label>
+			<div class="layui-input-block">
+				<input type="text" name="completeTime" autocomplete="off" class="layui-input" >
+			</div>
+		</div>
+		
+		
+	</form>
+</div>
+<!--js逻辑-->
+<script src="../../lib/layui/layui.js"></script>
+<script type="text/javascript">
+   function getUrlParam(name) {
+      var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+      var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+      if (r != null) return unescape(r[2]);
+      return null; //返回参数值
+   }
+</script>
+<script>
+	layui.use(["element", "form", "laydate", "okLayer", "okMd5", "okUtils"], function () {
+		let form = layui.form;
+		let laydate = layui.laydate;
+		let okLayer = layui.okLayer;
+		let okUtils = layui.okUtils;
+        let $ = layui.jquery;
+
+		var id = getUrlParam('id');
+		
+		if(id){
+			//编辑
+			okUtils.ajax("/group/info", "get", {id: id}, true).done(function (response) {
+				form.val("filter", response.data);
+			}).fail(function (error) {
+				console.log(error)
+			});
+		}
+		okLoading.close();
+
+
+	});
+</script>
+</body>
+</html>

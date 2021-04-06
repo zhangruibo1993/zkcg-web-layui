@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>新增健康打卡会员信息</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<link rel="stylesheet" href="../../css/oksub.css">
+	<script type="text/javascript" src="../../lib/loading/okLoading.js"></script>
+</head>
+<body>
+<div class="ok-body">
+	<!--form表单-->
+	<form class="layui-form layui-form-pane ok-form" lay-filter="filter">
+		<div class="layui-form-item">
+			<label class="layui-form-label"><span style="color: red;">*</span>真实姓名</label>
+			<div class="layui-input-block">
+				<input type="text" name="trueName" placeholder="请输入姓名" autocomplete="off" class="layui-input" lay-verify="required">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label"><span style="color: red;">*</span>手机号码</label>
+			<div class="layui-input-block">
+				<input type="text" name="phone" placeholder="请输入手机号码" autocomplete="off" class="layui-input" lay-verify="phone">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label"><span style="color: red;">*</span>身份证号码</label>
+			<div class="layui-input-block">
+				<input type="text" name="idCardNo" placeholder="请输入身份证号码" autocomplete="off" class="layui-input" >
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<div class="layui-input-block">
+				<button class="layui-btn" lay-submit lay-filter="add">提交</button>
+				<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+			</div>
+		</div>
+	</form>
+</div>
+<!--js逻辑-->
+<script src="../../lib/layui/layui.js"></script>
+<script type="text/javascript">
+   function getUrlParam(name) {
+      var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+      var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+      if (r != null) return unescape(r[2]);
+      return null; //返回参数值
+   }
+</script>
+<script>
+	layui.use(["element", "form", "laydate", "okLayer", "okUtils"], function () {
+		let form = layui.form;
+		let laydate = layui.laydate;
+		let okLayer = layui.okLayer;
+		let okUtils = layui.okUtils;
+        let $ = layui.jquery;
+
+		var id = getUrlParam('id');
+		var requestData = {};
+		
+		// if(!id){
+		// 	//新增
+		// 	//动态请求角色数据
+		// 	okUtils.ajax(requestUrl + "/member/add", "post", null, true).done(function (response) {
+		// 		var rp_str = "";
+		// 		for (var i = 0; i < response.data.rows.length; i++) {
+		// 			rp_str += '<input type="checkbox" name="roleId" title="'+response.data.rows[i].roleName+'" value="'+response.data.rows[i].id+'">';
+		// 		}
+		// 		$('#roleCheckboxHtml').append(rp_str);
+		// 		form.render('checkbox');//重新渲染加载多选框
+		// 	}).fail(function (error) {
+		// 	    console.log(error)
+		// 	});
+		// } else {
+		// 	//编辑
+		// 	requestMethod = "put";
+		// 	requestData.id = id;
+		// 	okUtils.ajax("/user/info", "get", {id: id}, true).done(function (response) {
+		// 		form.val("filter", response.data);
+		// 		var rp_str = "";
+		// 		for (var i = 0; i < response.data.roles.length; i++) {
+		// 			if(response.data.roles[i].isCheck === 1){
+		// 				rp_str += '<input type="checkbox" checked name="roleId" title="'+response.data.roles[i].roleName+'" value="'+response.data.roles[i].id+'">';
+		// 			} else {
+		// 				rp_str += '<input type="checkbox" name="roleId" title="'+response.data.roles[i].roleName+'" value="'+response.data.roles[i].id+'">';
+		// 			}
+		// 		}
+		// 		$('#roleCheckboxHtml').append(rp_str);
+		// 		form.render('checkbox');//重新渲染加载多选框
+		// 	}).fail(function (error) {
+		// 		console.log(error)
+		// 	});
+		// }
+		okLoading.close();
+
+		form.on("submit(add)", function (data) {
+			$.extend(requestData,data.field);
+			okUtils.ajax("/member", "post", JSON.stringify(requestData), true).done(function (response) {
+				okLayer.greenTickMsg("操作成功！", function () {
+					parent.layer.close(parent.layer.getFrameIndex(window.name));
+				});
+			}).fail(function (error) {
+				console.log(error)
+			});
+			return false;
+		});
+	});
+</script>
+</body>
+</html>

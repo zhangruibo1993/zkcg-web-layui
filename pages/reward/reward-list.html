@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>奖励明细列表</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<link rel="stylesheet" href="../../css/oksub.css">
+		<script type="text/javascript" src="../../lib/loading/okLoading.js"></script>
+	</head>
+	<body>
+		<div class="ok-body">
+			<!--模糊搜索区域-->
+			<div class="layui-row">
+				<form class="layui-form ok-search-form">
+					<div class="layui-form-item">
+						<div class="layui-inline">
+							<label class="layui-form-label">被奖励人</label>
+							<div class="layui-input-inline">
+								<input type="text" class="layui-input" autocomplete="off" name="memberName">
+							</div>
+						</div>
+						<div class="layui-inline">
+							<label class="layui-form-label">奖励来源人</label>
+							<div class="layui-input-inline">
+								<input type="text" class="layui-input" autocomplete="off" name="rewardFromName">
+							</div>
+						</div>
+						<div class="layui-inline">
+							<label class="layui-form-label">当前团id</label>
+							<div class="layui-input-inline">
+								<input type="text" class="layui-input" autocomplete="off" name="groupId">
+							</div>
+						</div>
+						<div class="layui-inline">
+							<label class="layui-form-label">vip推荐人</label>
+							<div class="layui-input-inline">
+								<input type="text" class="layui-input" autocomplete="off" name="vipReference">
+							</div>
+						</div>
+						<div class="layui-inline">
+							<label class="layui-form-label">成团推荐人</label>
+							<div class="layui-input-inline">
+								<input type="text" class="layui-input" autocomplete="off" name="groupReference">
+							</div>
+						</div>
+						<div class="layui-inline">
+							<label class="layui-form-label">vip等级</label>
+							<div class="layui-input-inline">
+								<select name="grade" lay-verify="" lay-search>
+									<option value="" selected>请选择</option>
+									<option value="1">普通用户</option>
+									<option value="2">VIP</option>
+									<option value="3">初级合伙人</option>
+									<option value="4">中级合伙人</option>
+									<option value="5">高级合伙人</option>
+								</select>
+							</div>
+						</div>
+						<div class="layui-inline">
+							<label class="layui-form-label">账号状态</label>
+							<div class="layui-input-inline">
+								<select name="status" lay-verify="" lay-search>
+									<option value="" selected>请选择</option>
+									<option value="1">启用</option>
+									<option value="0">停用</option>
+								</select>
+							</div>
+						</div>
+						<div class="layui-inline">
+							<div class="layui-input-inline">
+								<button class="layui-btn" lay-submit="" lay-filter="search">
+									<i class="layui-icon">&#xe615;</i>
+								</button>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+			<!--数据表格-->
+			<table class="layui-hide" id="tableId" lay-filter="tableFilter"></table>
+		</div>
+<!--js逻辑-->
+<script src="../../lib/layui/layui.js"></script>
+<script>
+	layui.use(["element", "jquery", "table", "form", "laydate", "okLayer", "okUtils", "okMock"], function () {
+		let table = layui.table;
+		let form = layui.form;
+		let laydate = layui.laydate;
+		let okLayer = layui.okLayer;
+		let okUtils = layui.okUtils;
+		let okMock = layui.okMock;
+		let $ = layui.jquery;
+
+		okLoading.close($);
+
+		laydate.render({elem: "#startTime", type: "datetime"});
+		laydate.render({elem: "#endTime", type: "datetime"});
+
+		let userTable = table.render({
+			elem: '#tableId',
+			url: okUtils.baseUrl + '/reward/list',
+			limit: 10,
+			page: true,
+			toolbar: true,
+			// toolbar: "#toolbarTpl",
+			size: "sm", //尺寸外观
+			request: {
+			   pageName: 'page', //页码的参数名称，默认：page
+			   limitName: 'rows' //每页数据量的参数名，默认：limit
+			},
+			parseData: function(res){ //res 即为原始返回的数据
+				return {
+				  "code": res.code, //解析接口状态
+				  "msg": res.msg, //解析提示文本
+				  "count": res.data.total, //解析数据长度
+				  "data": res.data.rows //解析数据列表
+				};
+			},
+			headers : {
+				session_token : sessionStorage.getItem("session_token")
+			},
+			cols: [[
+				{field: "id", title: "ID", hide: true, sort: true},
+				{field: "memberName", title: "被奖励人" ,align:"center",width:110},
+				{field: "rewardFromName", title: "奖励来源人" ,align:"center",width:110},
+				{field: "groupId", title: "奖励来源人-拼团id" ,align:"center",width:150},
+				{field: "groupRole", title: "奖励来源人-拼团角色" ,align:"center",width:150},
+				{field: "type", title: "奖励类型" ,align:"center", templet: "#typeTpl"},
+				{field: "money", title: "奖励金额(元)" ,align:"center"},
+				{field: "balance", title: "余额(元)" ,align:"center"},
+				{field: "source", title: "奖励类型" ,align:"center",width:110, templet: "#sourceTpl"},
+				{field: "status", title: "状态" ,align:"center",width:110, templet: "#statusTpl"},
+				{field: "orderNumber", title: "订单编号" ,align:"center"},
+				
+				{field: "createTime", title: "创建时间",width:160,align:"center"},
+				{field: "lastUpdateTime", title: "更新时间",width:160,align:"center"},
+				// {title: "操作", align: "center", fixed: "right", templet: "#operationTpl"}
+			]],
+			done: function (res, curr, count) {
+				//console.info(res, curr, count);
+			}
+		});
+
+		form.on("submit(search)", function (data) {
+			userTable.reload({
+				where: data.field,
+				page: {curr: 1}
+			});
+			return false;
+		});
+
+		table.on("toolbar(tableFilter)", function (obj) {
+			switch (obj.event) {
+				case "batchEnabled":
+					batchEnabled();
+					break;
+				case "batchDisabled":
+					batchDisabled();
+					break;
+				case "batchDel":
+					batchDel();
+					break;
+				case "add":
+					add();
+					break;
+			}
+		});
+
+		table.on("tool(tableFilter)", function (obj) {
+			let data = obj.data;
+			switch (obj.event) {
+				case "edit":
+					edit(data);
+					break;
+				case "del":
+					del(data.id);
+					break;
+			}
+		});
+		
+		// function add() {
+		// 	okLayer.open("添加用户", "user-edit.html", "90%", "90%", null, function () {
+		// 		userTable.reload();
+		// 	})
+		// }
+
+		function edit(data) {
+			okLayer.open("更新用户", "user-edit.html?id="+data.id, "90%", "90%", function (layero) {
+				let iframeWin = window[layero.find("iframe")[0]["name"]];
+			}, function () {
+				userTable.reload();
+			})
+		}
+
+		function del(idStr) {
+			let reqData = {id:idStr};
+			okLayer.confirm("确定要删除吗？", function () {
+				okUtils.ajax("/user/delete", "post", JSON.stringify(reqData), true).done(function (response) {
+					console.log(response);
+					okUtils.tableSuccessMsg(response.msg);
+				}).fail(function (error) {
+					console.log(error)
+				});
+			})
+		}
+	})
+</script>
+		<!-- 头工具栏模板 -->
+		<script type="text/html" id="toolbarTpl">
+			<div class="layui-btn-container">
+		<button class="layui-btn layui-btn-sm" lay-event="add">添加会员</button>
+	</div>
+</script>
+		<!-- 行工具栏模板 -->
+<script type="text/html" id="operationTpl">
+			<a href="javascript:" title="编辑" lay-event="edit"><i class="layui-icon">&#xe642;</i></a>
+	<a href="javascript:" title="删除" lay-event="del"><i class="layui-icon">&#xe640;</i></a>
+</script>
+
+
+<script type="text/html" id="typeTpl">
+	{{#  if(d.type == 1){ }}
+		<span class="layui-btn layui-btn-normal layui-btn-xs">拼团分享</span>
+	{{#  } else if(d.type == 2) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">拼团团长成团</span>
+	{{#  } else if(d.type == 3) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">拼团团长推荐人奖励</span>
+	{{#  } else if(d.type == 4) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">直推购买奖励</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="sourceTpl">
+	{{#  if(d.source == 1){ }}
+		<span class="layui-btn layui-btn-normal layui-btn-xs">奖励</span>
+	{{#  } else if(d.source == 2) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">消费</span>
+	{{#  } else if(d.source == 3) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">提现</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="statusTpl">
+	{{#  if(d.status == 1){ }}
+		<span class="layui-btn layui-btn-normal layui-btn-xs">已完成</span>
+	{{#  } else if(d.status == 0) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">待处理</span>
+	{{#  } else if(d.status == -1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">已取消</span>
+	{{#  } }}
+</script>
+
+	</body>
+</html>

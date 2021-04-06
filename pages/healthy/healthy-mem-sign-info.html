@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>健康登记会员列表</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<link rel="stylesheet" href="../../css/oksub.css">
+		<script type="text/javascript" src="../../lib/loading/okLoading.js"></script>
+	</head>
+	<body>
+		<div class="ok-body">
+			<!--模糊搜索区域-->
+			<div class="layui-row">
+				<form class="layui-form ok-search-form">
+					<div class="layui-form-item">
+						 <div class="layui-inline">
+						      <label class="layui-form-label">日期</label>
+						      <div class="layui-input-inline">
+						        <input type="text" name="monthStr" class="layui-input" id="month" placeholder="请选择月份">
+						      </div>
+						    </div>
+						<div class="layui-inline">
+							<div class="layui-input-inline">
+								<button class="layui-btn" lay-submit="" lay-filter="search">
+									<i class="layui-icon">&#xe615;</i>
+								</button>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+			<!--数据表格-->
+			<table class="layui-hide" id="tableId" lay-filter="tableFilter"></table>
+		</div>
+<!--js逻辑-->
+<script src="../../lib/layui/layui.js"></script>
+<script type="text/javascript">
+   function getUrlParam(name) {
+      var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+      var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+      if (r != null) return unescape(r[2]);
+      return null; //返回参数值
+   }
+</script>
+<script>
+	layui.use(["element", "jquery", "table", "form", "laydate", "okLayer", "okUtils", "okMock"], function () {
+		let table = layui.table;
+		let form = layui.form;
+		let laydate = layui.laydate;
+		let okLayer = layui.okLayer;
+		let okUtils = layui.okUtils;
+		let okMock = layui.okMock;
+		let $ = layui.jquery;
+		var id = getUrlParam('id');
+		
+		okLoading.close($);
+		
+		//年月选择器
+		 laydate.render({
+			elem: '#month'
+			,type: 'month'
+		 });
+		 
+		let dateStr =  $("#month").value;
+		if(dateStr == undefined){
+			dateStr = okUtils.dateFormat(new Date(), "yyyy-MM");
+		}
+
+		let userTable = table.render({
+			elem: '#tableId',
+			url: okUtils.baseUrl + '/sign/month/info',
+			limit: 10,
+			page: false,
+			toolbar: true,
+			// toolbar: "#toolbarTpl",
+			size: "sm", //尺寸外观
+			where: {memberId: id, monthStr: dateStr},
+			parseData: function(res){ //res 即为原始返回的数据
+				return {
+				  "code": res.code, //解析接口状态
+				  "msg": res.msg, //解析提示文本
+				  "data": res.data //解析数据列表
+				};
+			},
+			headers : {
+				from:'web',
+				session_token : sessionStorage.getItem("session_token")
+			},
+			cols: [[
+				{field: "id", title: "ID", hide: true, sort: true},
+				{field: "createTime", title: "打卡日期" ,align:"center",width:150},
+				{field: "isSmoke", title: "是否抽烟" ,align:"center",width:110, templet: "#isSmokeTpl"},
+				{field: "isDrink", title: "是否喝酒" ,align:"center",width:110, templet: "#isDrinkTpl"},
+				
+				{field: "isFearCold", title: "是否畏寒" ,align:"center",width:110, templet: "#isFearColdTpl"},
+				{field: "isFearHeat", title: "是否怕热" ,align:"center",width:110, templet: "#isFearHeatTpl"},
+				
+				{field: "isMemoryLoss", title: "是否记忆力下降" ,align:"center",width:110, templet: "#isMemoryLossTpl"},
+				{field: "isHairLoss", title: "是否有脱发情况" ,align:"center",width:110, templet: "#isHairLossTpl"},
+				{field: "isCough", title: "是否咳嗽、咳痰" ,align:"center",width:110, templet: "#isCoughTpl"},
+				{field: "isChest", title: "是否胸闷、呼吸困难" ,align:"center",width:110, templet: "#isChestTpl"},
+				{field: "isDizzy", title: "是否头晕、头疼" ,align:"center",width:110, templet: "#isDizzyTpl"},
+				
+				{field: "isAbdominal", title: "是否腹胀、腹痛、腹泄" ,align:"center",width:110, templet: "#isAbdominalTpl"},
+				{field: "isConstipation", title: "是否便秘、便血" ,align:"center",width:110, templet: "#isConstipationTpl"},
+				{field: "isVomit", title: "是否呕吐反胃" ,align:"center",width:110, templet: "#isVomitTpl"},
+				{field: "isCancer", title: "是否有癌症" ,align:"center",width:110, templet: "#isCancerTpl"},
+				{field: "isLeukemia", title: "是否有白血病" ,align:"center",width:110, templet: "#isLeukemiaTpl"},
+				
+				{field: "isRheumatism", title: "是否有风湿类疾病" ,align:"center",width:110, templet: "#isRheumatismTpl"},
+				{field: "isSkinDisease", title: "是否有皮肤类疾病" ,align:"center",width:110, templet: "#isSkinDiseaseTpl"},
+				{field: "isHeartDisease", title: "是否有心脏类疾病" ,align:"center",width:110, templet: "#isHeartDiseaseTpl"},
+				{field: "isHypertension", title: "是否有高血压" ,align:"center",width:110, templet: "#isHypertensionTpl"},
+				{field: "isUricAcid", title: "是否尿酸指数超高" ,align:"center",width:110, templet: "#isUricAcidTpl"},
+				{field: "remark", title: "其他补充" ,align:"center",width:110}
+				
+				
+			]],
+			done: function (res, curr, count) {
+				//console.info(res, curr, count);
+			}
+		});
+		
+		form.on("submit(search)", function (data) {
+			userTable.reload({
+				where: data.field,
+			});
+			return false;
+		});
+		
+	})
+</script>
+		<!-- 头工具栏模板 -->
+		<script type="text/html" id="toolbarTpl">
+			<div class="layui-btn-container">
+		<button class="layui-btn layui-btn-sm" lay-event="add">添加会员</button>
+	</div>
+</script>
+		<!-- 行工具栏模板 -->
+<script type="text/html" id="operationTpl">
+			<a href="javascript:" title="查看打卡记录" lay-event="info"><i class="layui-icon">&#xe642;</i></a>
+	<!-- <a href="javascript:" title="删除" lay-event="del"><i class="layui-icon">&#xe640;</i></a> -->
+</script>
+
+<script type="text/html" id="isSmokeTpl">
+	{{#  if(d.isSmoke == 0){ }}
+		<span>否</span>
+	{{#  } else if(d.isSmoke == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isDrinkTpl">
+	{{#  if(d.isSmoke == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isSmoke == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+
+<script type="text/html" id="isDrinkTpl">
+	{{#  if(d.isDrink == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isDrink == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isFearColdTpl">
+	{{#  if(d.isFearCold == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isFearCold == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isFearHeatTpl">
+	{{#  if(d.isFearHeat == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isFearHeat == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isMemoryLossTpl">
+	{{#  if(d.isMemoryLoss == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isMemoryLoss == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isHairLossTpl">
+	{{#  if(d.isHairLoss == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isHairLoss == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isCoughTpl">
+	{{#  if(d.isCough == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isCough == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isChestTpl">
+	{{#  if(d.isChest == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isChest == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isDizzyTpl">
+	{{#  if(d.isDizzy == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isDizzy == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isAbdominalTpl">
+	{{#  if(d.isAbdominal == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isAbdominal == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isConstipationTpl">
+	{{#  if(d.isConstipation == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isConstipation == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isVomitTpl">
+	{{#  if(d.isVomit == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isVomit == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isCancerTpl">
+	{{#  if(d.isCancer == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isCancer == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isLeukemiaTpl">
+	{{#  if(d.isLeukemia == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isLeukemia == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isRheumatismTpl">
+	{{#  if(d.isRheumatism == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isRheumatism == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isSkinDiseaseTpl">
+	{{#  if(d.isSkinDisease == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isSkinDisease == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isHeartDiseaseTpl">
+	{{#  if(d.isHeartDisease == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isHeartDisease == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isHypertensionTpl">
+	{{#  if(d.isHypertension == 0){ }}
+		<span >否</span>
+	{{#  } else if(d.isHypertension == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+<script type="text/html" id="isUricAcidTpl">
+	{{#  if(d.isUricAcid == 0){ }}
+		<span>否</span>
+	{{#  } else if(d.isUricAcid == 1) { }}
+		<span class="layui-btn layui-btn-warm layui-btn-xs">有</span>
+	{{#  } }}
+</script>
+
+	</body>
+</html>
